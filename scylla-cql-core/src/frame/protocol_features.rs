@@ -14,6 +14,11 @@ pub const SCYLLA_LWT_ADD_METADATA_MARK_EXTENSION: &str = "SCYLLA_LWT_ADD_METADAT
 pub const LWT_OPTIMIZATION_META_BIT_MASK_KEY: &str = "LWT_OPTIMIZATION_META_BIT_MASK";
 const TABLETS_ROUTING_V1_KEY: &str = "TABLETS_ROUTING_V1";
 const SCYLLA_USE_METADATA_ID_KEY: &str = "SCYLLA_USE_METADATA_ID";
+const SCYLLA_DRIVER_UPDATE_KEY: &str = "SCYLLA_DRIVER_UPDATE";
+
+pub const SCYLLA_CLIENT_ARCH_KEY: &str = "SCYLLA_CLIENT_ARCH";
+pub const SCYLLA_CLIENT_OS_KEY: &str = "SCYLLA_CLIENT_OS";
+pub const SCYLLA_DRIVER_HASH_KEY: &str = "SCYLLA_DRIVER_HASH";
 
 /// Which protocol extensions are supported by the server.
 ///
@@ -52,6 +57,9 @@ pub struct ProtocolFeatures {
 
     /// Does the server supports sending metadata id (introduced in CQL v5) for CQL v4.
     pub scylla_metadata_id_supported: bool,
+
+    /// Whether the server supports driver binary updates.
+    pub driver_update_supported: bool,
 }
 
 // TODO: Log information about options which failed to parse
@@ -59,6 +67,7 @@ pub struct ProtocolFeatures {
 impl ProtocolFeatures {
     /// Parses the supported protocol features from the `supported` map.
     pub fn parse_from_supported(supported: &HashMap<String, Vec<String>>) -> Self {
+        let driver_update_supported = supported.contains_key(SCYLLA_DRIVER_UPDATE_KEY);
         Self {
             rate_limit_error: Self::maybe_parse_rate_limit_error(supported),
             lwt_optimization_meta_bit_mask: Self::maybe_parse_lwt_optimization_meta_bit_mask(
@@ -66,6 +75,7 @@ impl ProtocolFeatures {
             ),
             tablets_v1_supported: Self::check_tablets_routing_v1_support(supported),
             scylla_metadata_id_supported: Self::check_scylla_metadata_id_support(supported),
+            driver_update_supported,
         }
     }
 
@@ -116,6 +126,23 @@ impl ProtocolFeatures {
 
         if self.scylla_metadata_id_supported {
             options.insert(Cow::Borrowed(SCYLLA_USE_METADATA_ID_KEY), Cow::Borrowed(""));
+        }
+
+        if self.driver_update_supported {
+            options.insert(Cow::Borrowed(SCYLLA_DRIVER_UPDATE_KEY), Cow::Borrowed("1"));
+        }
+    }
+
+    /// Adds client identity fields for driver update negotiation.
+    pub fn add_driver_update_startup_options(
+        &self,
+        options: &mut HashMap<Cow<'_, str>, Cow<'_, str>>,
+        current_driver_hash: &str,
+    ) {
+        if self.driver_update_supported {
+            options.insert(Cow::Borrowed(SCYLLA_CLIENT_ARCH_KEY), Cow::Owned(std::env::consts::ARCH.to_string()));
+            options.insert(Cow::Borrowed(SCYLLA_CLIENT_OS_KEY), Cow::Owned(std::env::consts::OS.to_string()));
+            options.insert(Cow::Borrowed(SCYLLA_DRIVER_HASH_KEY), Cow::Owned(current_driver_hash.to_string()));
         }
     }
 
