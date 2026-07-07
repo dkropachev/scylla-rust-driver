@@ -1,0 +1,11 @@
+[package]
+name = "sign-driver"
+version = "0.1.0"
+edition = "2021"
+description = "Tool for signing ScyllaDB driver shared library binaries"
+
+[dependencies]
+ed25519-dalek = { version = "2", features = ["std", "rand_core"] }
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
