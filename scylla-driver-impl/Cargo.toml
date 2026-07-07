@@ -1,0 +1,12 @@
+[package]
+name = "scylla-driver-impl"
+version = "0.1.0"
+edition = "2021"
+description = "ScyllaDB driver implementation compiled as a shared library"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+scylla-driver-abi = { path = "../scylla-driver-abi" }
+tokio = { version = "1", features = ["full"] }
