@@ -9,6 +9,7 @@ members = [
     "utils/analyze_errors_size",
     "utils/find_stale_test_keyspaces",
     "utils/generate_book_tests",
+    "scylla-driver-abi",
 ]
 resolver = "3"
 
