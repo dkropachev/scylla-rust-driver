@@ -121,6 +121,11 @@ tokio-rustls = { version = "0.26", optional = true }
 ####################
 # Internal utilities
 ####################
+libloading = "0.8"
+ed25519-dalek = { version = "2", features = ["std"] }
+sha2 = "0.10"
+hex = "0.4"
+scylla-driver-abi = { path = "../scylla-driver-abi" }
 # Used in metrics.
 histogram = { version = "1", optional = true }
 # Used by authentication and address translation public traits.

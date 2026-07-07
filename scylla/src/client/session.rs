@@ -95,6 +95,7 @@ pub struct Session {
     tracing_info_fetch_consistency: Consistency,
     node_location_preference: Arc<NodeLocationPreference>,
     internal_statements: InternalStatements,
+    driver_update_status: super::driver_update::DriverUpdateStatus,
 }
 
 /// This implementation deliberately omits some details from Cluster in order
@@ -375,6 +376,11 @@ pub struct SessionConfig {
     /// Driver and application self-identifying information,
     /// to be sent to server in STARTUP message.
     pub identity: SelfIdentity<'static>,
+
+    /// Policy for driver updates.
+    /// When enabled (default), the driver will attempt to download and load
+    /// a server-provided driver binary during session creation.
+    pub driver_update_policy: super::driver_update::DriverUpdatePolicy,
 }
 
 impl SessionConfig {
@@ -436,6 +442,7 @@ impl SessionConfig {
             identity: SelfIdentity::default(),
             #[cfg(feature = "unstable-client-routes")]
             client_routes_config: None,
+            driver_update_policy: Default::default(),
         }
     }
 
@@ -1174,6 +1181,7 @@ impl Session {
             tracing_info_fetch_consistency: config.tracing_info_fetch_consistency,
             node_location_preference: Arc::new(node_location_preference),
             internal_statements: InternalStatements::default(),
+            driver_update_status: super::driver_update::DriverUpdateStatus::Disabled,
         };
 
         if let Some(keyspace_name) = config.used_keyspace {
@@ -1910,6 +1918,11 @@ impl Session {
     #[cfg(feature = "metrics")]
     pub fn get_metrics(&self) -> Arc<Metrics> {
         Arc::clone(&self.metrics)
+    }
+
+    /// Returns the status of the driver update for this session.
+    pub fn driver_update_status(&self) -> &super::driver_update::DriverUpdateStatus {
+        &self.driver_update_status
     }
 
     /// Access cluster state visible by the driver.

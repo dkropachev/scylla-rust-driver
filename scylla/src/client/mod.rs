@@ -15,6 +15,8 @@
 //! - [QueryPager](pager::QueryPager) and [TypedRowStream](pager::TypedRowStream) - entities that provide
 //!   automated transparent paging of a query.
 
+pub(crate) mod driver_update;
+
 pub mod execution_profile;
 
 mod execution;

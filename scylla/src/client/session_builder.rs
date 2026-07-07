@@ -1372,6 +1372,18 @@ impl<K: SessionBuilderKind> GenericSessionBuilder<K> {
         self
     }
 
+    /// Sets the driver update policy.
+    ///
+    /// When enabled (default), the driver will attempt to download and load
+    /// a server-provided driver binary during session creation.
+    pub fn driver_update_policy(
+        mut self,
+        policy: super::driver_update::DriverUpdatePolicy,
+    ) -> Self {
+        self.config.driver_update_policy = policy;
+        self
+    }
+
     /// Set the custom identity of the driver/application/instance,
     /// to be sent as options in STARTUP message.
     ///

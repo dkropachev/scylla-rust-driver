@@ -269,6 +269,8 @@ pub mod deserialize {
 pub mod authentication;
 pub mod client;
 
+pub use client::driver_update::{DriverUpdatePolicy, DriverUpdateStatus};
+
 pub mod cluster;
 pub mod errors;
 mod network;
