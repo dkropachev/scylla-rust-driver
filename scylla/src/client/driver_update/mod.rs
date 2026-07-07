@@ -1,8 +1,11 @@
 //! Driver update mechanism — download, verify, cache, and load
 //! server-distributed driver binaries.
 
+#[allow(dead_code)]
 pub(crate) mod cache;
+#[allow(dead_code)]
 pub(crate) mod loader;
+#[allow(dead_code)]
 pub(crate) mod signature;
 
 /// Policy for driver updates.

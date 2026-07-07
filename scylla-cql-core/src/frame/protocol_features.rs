@@ -140,9 +140,18 @@ impl ProtocolFeatures {
         current_driver_hash: &str,
     ) {
         if self.driver_update_supported {
-            options.insert(Cow::Borrowed(SCYLLA_CLIENT_ARCH_KEY), Cow::Owned(std::env::consts::ARCH.to_string()));
-            options.insert(Cow::Borrowed(SCYLLA_CLIENT_OS_KEY), Cow::Owned(std::env::consts::OS.to_string()));
-            options.insert(Cow::Borrowed(SCYLLA_DRIVER_HASH_KEY), Cow::Owned(current_driver_hash.to_string()));
+            options.insert(
+                Cow::Borrowed(SCYLLA_CLIENT_ARCH_KEY),
+                Cow::Owned(std::env::consts::ARCH.to_string()),
+            );
+            options.insert(
+                Cow::Borrowed(SCYLLA_CLIENT_OS_KEY),
+                Cow::Owned(std::env::consts::OS.to_string()),
+            );
+            options.insert(
+                Cow::Borrowed(SCYLLA_DRIVER_HASH_KEY),
+                Cow::Owned(current_driver_hash.to_string()),
+            );
         }
     }
 

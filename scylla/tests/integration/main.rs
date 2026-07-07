@@ -2,6 +2,7 @@
 #![allow(missing_docs)]
 
 pub(crate) mod ccm;
+mod driver_update;
 mod load_balancing;
 mod macros;
 mod metadata;

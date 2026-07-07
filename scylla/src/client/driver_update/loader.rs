@@ -17,6 +17,15 @@ pub(crate) struct LoadedDriver {
     vtable: &'static DriverVtable,
 }
 
+impl std::fmt::Debug for LoadedDriver {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("LoadedDriver")
+            .field("abi_version", &self.vtable.abi_version)
+            .field("build_number", &self.vtable.build_number)
+            .finish()
+    }
+}
+
 impl LoadedDriver {
     /// Load a driver from a shared library file path.
     ///
@@ -70,7 +79,8 @@ impl LoadedDriver {
             });
         }
 
-        // Check minimum build number
+        // Check minimum build number (guard for when MIN_DRIVER_BUILD_NUMBER > 0)
+        #[allow(clippy::absurd_extreme_comparisons)]
         if vtable.build_number < MIN_DRIVER_BUILD_NUMBER {
             tracing::warn!(
                 "Driver build number {} below minimum {}",
@@ -116,6 +126,65 @@ impl LoadedDriver {
             } else {
                 CStr::from_ptr(ptr).to_string_lossy().into_owned()
             }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::PathBuf;
+
+    fn find_cdylib() -> PathBuf {
+        // Look for the built cdylib in target/debug
+        let manifest_dir = env!("CARGO_MANIFEST_DIR");
+        let workspace_root = PathBuf::from(manifest_dir).parent().unwrap().to_path_buf();
+
+        let so_path = workspace_root.join("target/debug/libscylla_driver_impl.so");
+        if so_path.exists() {
+            return so_path;
+        }
+
+        let dylib_path = workspace_root.join("target/debug/libscylla_driver_impl.dylib");
+        if dylib_path.exists() {
+            return dylib_path;
+        }
+
+        panic!(
+            "Could not find libscylla_driver_impl.so or .dylib. \
+             Run `cargo build -p scylla-driver-impl` first."
+        );
+    }
+
+    #[test]
+    fn test_load_driver_and_get_version() {
+        let path = find_cdylib();
+        let driver = LoadedDriver::load(&path).expect("Failed to load driver");
+
+        // The driver-impl crate returns "0.2.0-updated"
+        assert_eq!(driver.version(), "0.2.0-updated");
+    }
+
+    #[test]
+    fn test_load_driver_abi_version() {
+        let path = find_cdylib();
+        let driver = LoadedDriver::load(&path).expect("Failed to load driver");
+
+        let vtable = driver.vtable();
+        assert_eq!(vtable.abi_version, scylla_driver_abi::ABI_VERSION);
+        assert!(vtable.vtable_size > 0);
+        assert!(vtable.build_number >= MIN_DRIVER_BUILD_NUMBER);
+    }
+
+    #[test]
+    fn test_load_nonexistent_library() {
+        let result = LoadedDriver::load(std::path::Path::new("/nonexistent/libfoo.so"));
+        assert!(result.is_err());
+        match result.unwrap_err() {
+            DriverUpdateStatus::FallbackDownloadFailed { reason } => {
+                assert!(reason.contains("dlopen"));
+            }
+            other => panic!("Expected FallbackDownloadFailed, got {:?}", other),
         }
     }
 }

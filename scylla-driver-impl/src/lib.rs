@@ -17,6 +17,11 @@ static VTABLE: DriverVtable = DriverVtable {
     get_driver_version: impl_get_driver_version,
 };
 
+/// Entry point for the loaded driver. Returns a pointer to the static vtable.
+///
+/// # Safety
+/// The returned pointer is valid for the lifetime of the loaded library.
+/// Callers must ensure the library stays loaded while using the vtable.
 #[no_mangle]
 pub unsafe extern "C" fn scylla_driver_init() -> *const DriverVtable {
     &VTABLE
