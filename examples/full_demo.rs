@@ -306,9 +306,12 @@ async fn main() -> Result<()> {
     println!("  ║  Signature verification:    passed                       ║");
     println!("  ╚═══════════════════════════════════════════════════════════╝");
 
-    // Cleanup
+    // Cleanup: drop Session before the library, and intentionally leak the
+    // library handle to avoid dlclose segfault (the cdylib may have registered
+    // thread-local storage or atexit handlers that reference unmapped memory).
+    drop(session);
+    std::mem::forget(lib);
     let _ = std::fs::remove_dir_all(&tmp);
-    drop(lib);
     proxy_handle.join().unwrap();
 
     println!();
