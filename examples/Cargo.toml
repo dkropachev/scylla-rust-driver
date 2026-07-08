@@ -152,5 +152,13 @@ path = "driver_update_demo.rs"
 name = "server_push_demo"
 path = "server_push_demo.rs"
 
+[[example]]
+name = "scylla_update_proxy"
+path = "scylla_update_proxy.rs"
+
+[[example]]
+name = "full_demo"
+path = "full_demo.rs"
+
 [package.metadata.cargo-semver-checks.lints]
 workspace = true
