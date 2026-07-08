@@ -1166,6 +1166,27 @@ impl Session {
 
         let default_execution_profile_handle = config.default_execution_profile_handle;
 
+        // Determine driver update status based on policy.
+        // For now, since the server-side isn't fully wired, we report the policy state.
+        // When connecting to a server with SCYLLA_DRIVER_UPDATE support,
+        // this would trigger download/verify/load and report Updated or Fallback*.
+        let driver_update_status = match config.driver_update_policy {
+            super::driver_update::DriverUpdatePolicy::Disabled => {
+                tracing::debug!("Driver update: disabled by policy");
+                super::driver_update::DriverUpdateStatus::Disabled
+            }
+            super::driver_update::DriverUpdatePolicy::Enabled
+            | super::driver_update::DriverUpdatePolicy::Required => {
+                // The server doesn't support SCYLLA_DRIVER_UPDATE yet
+                // (standard ScyllaDB doesn't advertise it).
+                // When it does, the connection handshake will set
+                // protocol_features.driver_update_supported = true,
+                // and we'd download/verify/load the binary here.
+                tracing::info!("Driver update: server does not support SCYLLA_DRIVER_UPDATE extension, using built-in driver");
+                super::driver_update::DriverUpdateStatus::FallbackServerUnsupported
+            }
+        };
+
         let session = Self {
             cluster,
             default_execution_profile_handle,
@@ -1181,7 +1202,7 @@ impl Session {
             tracing_info_fetch_consistency: config.tracing_info_fetch_consistency,
             node_location_preference: Arc::new(node_location_preference),
             internal_statements: InternalStatements::default(),
-            driver_update_status: super::driver_update::DriverUpdateStatus::Disabled,
+            driver_update_status,
         };
 
         if let Some(keyspace_name) = config.used_keyspace {

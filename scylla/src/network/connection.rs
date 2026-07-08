@@ -2081,6 +2081,9 @@ pub(crate) async fn open_connection(
     // Application & driver's identity.
     config.identity.add_startup_options(&mut options);
 
+    // Driver update client identity (arch, OS, current driver hash).
+    protocol_features.add_driver_update_startup_options(&mut options, "");
+
     // Optional compression.
     if let Some(compression) = &config.compression {
         let compression_str = compression.as_str();
