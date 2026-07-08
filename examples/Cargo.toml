@@ -24,6 +24,9 @@ scylla = { path = "../scylla", features = [
 ] }
 libloading = "0.8"
 scylla-driver-abi = { path = "../scylla-driver-abi" }
+ed25519-dalek = { version = "2", features = ["std"] }
+sha2 = "0.10"
+hex = "0.4"
 tokio = { version = "1.34", features = ["full"] }
 tracing = { version = "0.1.25", features = ["log"] }
 tracing-subscriber = { version = "0.3.14", features = ["env-filter"] }
@@ -144,6 +147,10 @@ path = "client-routes.rs"
 [[example]]
 name = "driver_update_demo"
 path = "driver_update_demo.rs"
+
+[[example]]
+name = "server_push_demo"
+path = "server_push_demo.rs"
 
 [package.metadata.cargo-semver-checks.lints]
 workspace = true
